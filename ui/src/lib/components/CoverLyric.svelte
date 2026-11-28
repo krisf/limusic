@@ -9,7 +9,7 @@
 	import { lyricsFor, nowLyrics, setNowLyrics } from '$lib/nowlyrics.svelte';
 	import { t } from '$lib/i18n.svelte';
 	import { glowing, letters, sweep } from '$lib/lyricmotion';
-	import { appearance } from '$lib/theme.svelte';
+	import { appearance, lite } from '$lib/theme.svelte';
 
 	// The line being sung, under the now-playing cover (the Android app's CoverLyricLine). Two lines
 	// tall whatever line it holds, so the title under it never moves when a line ends. A one-line
@@ -48,7 +48,7 @@
 	$effect(() => {
 		const base = playback.position;
 		pos = base;
-		if (playback.paused || !worded || ui.theaterOpen) return;
+		if (playback.paused || !worded || ui.theaterOpen || lite()) return;
 		const at = performance.now();
 		const speed = playback.speed;
 		let frame = requestAnimationFrame(function tick() {
@@ -110,7 +110,7 @@
 
 	const still = new MediaQuery('prefers-reduced-motion: reduce');
 	// Long enough to read as travel, short enough that fast lines don't queue.
-	const dur = $derived(still.current ? 0 : 420);
+	const dur = $derived(still.current || lite() ? 0 : 420);
 
 	/** The handoff between two lines (Better Lyrics' one-line stage): the old line rises away and is
 	 *  gone in 220 ms, out of the way, while the new one rises in from a third of the slot below,
@@ -138,7 +138,9 @@
      margin is the gap the two had before this line existed. It glides between them, except under a
      video: mpv's picture on Linux cannot follow a box that moves every frame (see `holeFor`). -->
 <div
-	class="overflow-hidden pt-3 font-heading leading-[1.35] font-semibold {showVideo() || still.current
+	class="overflow-hidden pt-3 font-heading leading-[1.35] font-semibold {showVideo() ||
+	still.current ||
+	lite()
 		? ''
 		: 'transition-[height] duration-300 ease-out'}"
 	style="font-size:clamp(0.9375rem, var(--side) * 0.032, 1.125rem);height:{open

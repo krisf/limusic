@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { theme } from '$lib/theme.svelte';
+	import { lite, theme } from '$lib/theme.svelte';
 
 	let {
 		pct,
@@ -119,6 +119,35 @@
 		const render = () => {
 			updateSvg(seekW, seekH, displayPct, wavePhase, waveAmp);
 		};
+
+		const liteOn = lite();
+		if (liteOn) {
+			waveAmp = 0;
+			wavePhase = 0;
+			displayPct = curPct;
+			render();
+			kickWave = () => {
+				displayPct = curPct;
+				waveAmp = 0;
+				render();
+			};
+			const ro = new ResizeObserver((entries) => {
+				const rect = entries[0]?.contentRect;
+				const w = rect?.width ?? 0;
+				const h = rect?.height || 16;
+				if (w !== seekW || h !== seekH) {
+					seekW = w;
+					seekH = h;
+					kickWave();
+				}
+			});
+			ro.observe(svg);
+			kickWave();
+			return () => {
+				ro.disconnect();
+				kickWave = () => {};
+			};
+		}
 
 		const tick = (now: number) => {
 			raf = 0;
